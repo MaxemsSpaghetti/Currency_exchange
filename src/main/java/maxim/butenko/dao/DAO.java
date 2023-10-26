@@ -3,7 +3,7 @@ package maxim.butenko.dao;
 import java.util.List;
 import java.util.Optional;
 
-public interface CurrenciesDAO<K, T> {
+public interface DAO<K, T> {
 
     List<T> findAll();
 
