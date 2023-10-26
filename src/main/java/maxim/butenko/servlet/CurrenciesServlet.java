@@ -1,6 +1,6 @@
 package maxim.butenko.servlet;
 
-import maxim.butenko.service.CurrencyServiceImpl;
+import maxim.butenko.service.CurrencyService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
 
-    private final CurrencyServiceImpl currencyService = CurrencyServiceImpl.getInstance();
+    private final CurrencyService currencyService = CurrencyService.getInstance();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html");
