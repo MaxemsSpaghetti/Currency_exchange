@@ -6,16 +6,16 @@ public class ExchangeRate {
 
     private long id;
 
-    private String baseCurrencyId;
+    private int baseCurrencyId;
 
-    private String targetCurrencyId;
+    private int targetCurrencyId;
 
     private double rate;
 
     public ExchangeRate() {
     }
 
-    public ExchangeRate(long id, String baseCurrencyId, String targetCurrencyId, double rate) {
+    public ExchangeRate(long id, int baseCurrencyId, int targetCurrencyId, double rate) {
         this.id = id;
         this.baseCurrencyId = baseCurrencyId;
         this.targetCurrencyId = targetCurrencyId;
@@ -26,11 +26,11 @@ public class ExchangeRate {
         return this.id;
     }
 
-    public String getBaseCurrencyId() {
+    public int getBaseCurrencyId() {
         return this.baseCurrencyId;
     }
 
-    public String getTargetCurrencyId() {
+    public int getTargetCurrencyId() {
         return this.targetCurrencyId;
     }
 
@@ -42,11 +42,11 @@ public class ExchangeRate {
         this.id = id;
     }
 
-    public void setBaseCurrencyId(String baseCurrencyId) {
+    public void setBaseCurrencyId(int baseCurrencyId) {
         this.baseCurrencyId = baseCurrencyId;
     }
 
-    public void setTargetCurrencyId(String targetCurrencyId) {
+    public void setTargetCurrencyId(int targetCurrencyId) {
         this.targetCurrencyId = targetCurrencyId;
     }
 
@@ -54,38 +54,17 @@ public class ExchangeRate {
         this.rate = rate;
     }
 
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof ExchangeRate other)) return false;
-        if (!other.canEqual(this)) return false;
-        if (this.getId() != other.getId()) return false;
-        final Object this$baseCurrencyId = this.getBaseCurrencyId();
-        final Object other$baseCurrencyId = other.getBaseCurrencyId();
-        if (!Objects.equals(this$baseCurrencyId, other$baseCurrencyId))
-            return false;
-        final Object this$targetCurrencyId = this.getTargetCurrencyId();
-        final Object other$targetCurrencyId = other.getTargetCurrencyId();
-        if (!Objects.equals(this$targetCurrencyId, other$targetCurrencyId))
-            return false;
-        return Double.compare(this.getRate(), other.getRate()) == 0;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ExchangeRate that = (ExchangeRate) o;
+        return id == that.id;
     }
 
-    protected boolean canEqual(final Object other) {
-        return other instanceof ExchangeRate;
-    }
-
+    @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final long $id = this.getId();
-        result = result * PRIME + (int) ($id >>> 32 ^ $id);
-        final Object $baseCurrencyId = this.getBaseCurrencyId();
-        result = result * PRIME + ($baseCurrencyId == null ? 43 : $baseCurrencyId.hashCode());
-        final Object $targetCurrencyId = this.getTargetCurrencyId();
-        result = result * PRIME + ($targetCurrencyId == null ? 43 : $targetCurrencyId.hashCode());
-        final long $rate = Double.doubleToLongBits(this.getRate());
-        result = result * PRIME + (int) ($rate >>> 32 ^ $rate);
-        return result;
+        return Objects.hash(id);
     }
 
     public String toString() {
