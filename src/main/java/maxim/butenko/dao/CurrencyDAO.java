@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CurrencyDAOImpl implements CurrenciesDAO<Long, Currency> {
+public class CurrencyDAO implements DAO<Long, Currency> {
 
-    private static final CurrencyDAOImpl INSTANCE = new CurrencyDAOImpl();
+    private static final CurrencyDAO INSTANCE = new CurrencyDAO();
 
     private static final String FIND_ALL = "SELECT * FROM currencies";
 
-    private CurrencyDAOImpl() {
+    private CurrencyDAO() {
 
     }
 
@@ -54,7 +54,7 @@ public class CurrencyDAOImpl implements CurrenciesDAO<Long, Currency> {
         return null;
     }
 
-    public static CurrencyDAOImpl getInstance() {
+    public static CurrencyDAO getInstance() {
         return INSTANCE;
     }
 
