@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ExchangeRate {
-    long id;
-    int baseCurrencyId;
-    int targetCurrencyId;
-    double rate;
+    private long id;
+    private Currency baseCurrencyId;
+    private Currency targetCurrencyId;
+    private double rate;
 }
