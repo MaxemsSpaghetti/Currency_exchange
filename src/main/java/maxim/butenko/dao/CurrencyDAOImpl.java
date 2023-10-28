@@ -9,13 +9,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CurrencyDAO implements DAO<Long, Currency> {
+public class CurrencyDAOImpl implements CurrencyDAO {
 
-    private static final CurrencyDAO INSTANCE = new CurrencyDAO();
+    private static final CurrencyDAOImpl INSTANCE = new CurrencyDAOImpl();
 
     private static final String FIND_ALL = "SELECT * FROM currencies";
 
-    private CurrencyDAO() {
+    private static final String FIND_BY_CODE = "SELECT * FROM currencies WHERE code = ?";
+
+    private CurrencyDAOImpl() {
 
     }
 
@@ -32,17 +34,20 @@ public class CurrencyDAO implements DAO<Long, Currency> {
         return currencies;
     }
 
-
-
     @Override
-    public Optional<Currency> findById(Long id) {
-        return Optional.empty();
+    @SneakyThrows
+    public Optional<Currency> findByCode(String code) {
+        var connection = ConnectionManager.get();
+        var prepareStatement = connection.prepareStatement(FIND_BY_CODE);
+        prepareStatement.setString(1, code);
+        var result = prepareStatement.executeQuery();
+
+        if (!result.next()) {
+            return Optional.empty();
+        }
+        return Optional.of(buildCurrency(result));
     }
 
-    @Override
-    public boolean deleteById(Long id) {
-        return false;
-    }
 
     @Override
     public void update(Currency currency) {
@@ -54,7 +59,7 @@ public class CurrencyDAO implements DAO<Long, Currency> {
         return null;
     }
 
-    public static CurrencyDAO getInstance() {
+    public static CurrencyDAOImpl getInstance() {
         return INSTANCE;
     }
 
@@ -62,8 +67,8 @@ public class CurrencyDAO implements DAO<Long, Currency> {
     private Currency buildCurrency(ResultSet resultSet) {
         return new Currency(
             resultSet.getObject("id", Long.class),
-                resultSet.getObject("code", String.class),
                 resultSet.getObject("fullName", String.class),
+                resultSet.getObject("code", String.class),
                 resultSet.getObject("sign", String.class)
         );
     }
