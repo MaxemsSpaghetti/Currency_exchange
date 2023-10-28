@@ -1,6 +1,5 @@
 package maxim.butenko.servlet.currency;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import maxim.butenko.service.CurrencyService;
 
@@ -23,15 +22,11 @@ public class CurrencyServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
         resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        currencyService.findByCode(req.getPathInfo().substring(1)).ifPresent(currency -> {
-            String json = null;
+        var pathInfo = req.getPathInfo().substring(1);
+        currencyService.findByCode(pathInfo).ifPresent(currency -> {
             try {
-                json = objectMapper.writeValueAsString(currency);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-            try (var printWriter = resp.getWriter()) {
-                printWriter.write(json);
+                String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currency);
+                resp.getWriter().write(json);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
