@@ -1,31 +1,43 @@
 package maxim.butenko.service;
 
-import maxim.butenko.dao.CurrencyDAO;
+import maxim.butenko.dao.CurrencyDAOImpl;
 import maxim.butenko.dto.CurrencyDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
-public class CurrencyService implements Service<CurrencyDTO> {
+public class CurrencyService {
 
-    private final CurrencyDAO currencyDAO = CurrencyDAO.getInstance();
+    private final CurrencyDAOImpl currencyDAO = CurrencyDAOImpl.getInstance();
 
-    public static final CurrencyService INSTANCE = new CurrencyService();
+    private static final CurrencyService INSTANCE = new CurrencyService();
 
     private CurrencyService() {
 
     }
 
-    @Override
     public List<CurrencyDTO> findAll() {
         return currencyDAO.findAll().stream()
-                .map(currency -> new CurrencyDTO(
-                        currency.getId(),
-                        currency.getCode(),
-                        currency.getFullName(),
-                        currency.getSign()))
+                .map(currency -> CurrencyDTO.builder()
+                        .id(currency.getId())
+                        .fullName(currency.getFullName())
+                        .code(currency.getCode())
+                        .sign(currency.getSign())
+                        .build())
                 .collect(toList());
+    }
+
+    public Optional<CurrencyDTO> findByCode(String code) {
+        return currencyDAO.findByCode(code).stream()
+                .map(currency -> CurrencyDTO.builder()
+                        .id(currency.getId())
+                        .fullName(currency.getFullName())
+                        .code(currency.getCode())
+                        .sign(currency.getSign())
+                        .build())
+                .findFirst();
     }
 
     public static CurrencyService getInstance() {
