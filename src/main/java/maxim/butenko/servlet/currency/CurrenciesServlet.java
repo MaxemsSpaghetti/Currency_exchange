@@ -1,5 +1,7 @@
-package maxim.butenko.servlet;
+package maxim.butenko.servlet.currency;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import maxim.butenko.dto.CurrencyDTO;
 import maxim.butenko.service.CurrencyService;
 
 import javax.servlet.ServletException;
@@ -9,26 +11,31 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
 
     private final CurrencyService currencyService = CurrencyService.getInstance();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html");
+        resp.setContentType("application/json");
         resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        try(var printWriter = resp.getWriter()) {
-            printWriter.write("<h1>Currencies</h1>");
-            printWriter.write("<ul>");
-            currencyService.findAll().forEach(currencyDTO -> {
-                        printWriter.write("<li>");
-                        printWriter.write(currencyDTO.getId() + "/n "
-                                + currencyDTO.getCode() + "/n "
-                                + currencyDTO.getFullName() + "/n "
-                                + currencyDTO.getSign());
-                    });
-            printWriter.write("</ul>");
+
+        List<CurrencyDTO> currencies = currencyService.findAll();
+
+        String json = objectMapper.writeValueAsString(currencies);
+
+        try (var printWriter = resp.getWriter()) {
+            printWriter.write(json);
         }
+    }
+
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doPost(req, resp);
     }
 }
