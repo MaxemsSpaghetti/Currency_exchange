@@ -6,7 +6,7 @@ import lombok.Value;
 @Builder
 public class ExchangeRateDTO {
     long id;
-    int baseCurrencyId;
-    int targetCurrencyId;
+    CurrencyDTO baseCurrencyId;
+    CurrencyDTO targetCurrencyId;
     double rate;
 }
