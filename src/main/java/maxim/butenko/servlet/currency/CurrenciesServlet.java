@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 
 @WebServlet("/currencies")
@@ -36,18 +37,20 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
         resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        var fullName = req.getParameter("fullName");
-        var code = req.getParameter("code");
-        var sign = req.getParameter("sign");
+        String fullName = req.getParameter("fullName");
+        String code = req.getParameter("code");
+        String sign = req.getParameter("sign");
 
-        var newCurrency = currencyService.create(fullName, code, sign);
-        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(newCurrency);
-
-        try (var printWriter = resp.getWriter()) {
-            printWriter.write(json);
+        Optional<CurrencyDTO> newCurrency = currencyService.create(fullName, code, sign);
+        if (newCurrency.isPresent()) {
+            var currencyDTO = newCurrency.get();
+            String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currencyDTO);
+            try (var printWriter = resp.getWriter()) {
+                printWriter.write(json);
+            }
         }
     }
 }
