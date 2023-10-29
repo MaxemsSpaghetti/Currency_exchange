@@ -26,7 +26,7 @@ public class CurrenciesServlet extends HttpServlet {
 
         List<CurrencyDTO> currencies = currencyService.findAll();
 
-        String json = objectMapper.writeValueAsString(currencies);
+        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currencies);
 
         try (var printWriter = resp.getWriter()) {
             printWriter.write(json);
@@ -36,6 +36,18 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doPost(req, resp);
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        var fullName = req.getParameter("fullName");
+        var code = req.getParameter("code");
+        var sign = req.getParameter("sign");
+
+        var newCurrency = currencyService.create(fullName, code, sign);
+        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(newCurrency);
+
+        try (var printWriter = resp.getWriter()) {
+            printWriter.write(json);
+        }
     }
 }
