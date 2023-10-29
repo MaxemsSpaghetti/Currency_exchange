@@ -17,8 +17,24 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
     private static final String FIND_BY_CODE = "SELECT * FROM currencies WHERE code = ?";
 
+    private static final String CREATE = "INSERT INTO currencies (fullName, code, sign) VALUES (?, ?, ?)";
+
     private CurrencyDAOImpl() {
 
+    }
+
+    public static CurrencyDAOImpl getInstance() {
+        return INSTANCE;
+    }
+
+    @SneakyThrows
+    private Currency buildCurrency(ResultSet resultSet) {
+        return new Currency(
+                resultSet.getObject("id", Long.class),
+                resultSet.getObject("fullName", String.class),
+                resultSet.getObject("code", String.class),
+                resultSet.getObject("sign", String.class)
+        );
     }
 
     @Override
@@ -55,21 +71,25 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    public Currency save(Currency currency) {
-        return null;
-    }
-
-    public static CurrencyDAOImpl getInstance() {
-        return INSTANCE;
-    }
-
     @SneakyThrows
-    private Currency buildCurrency(ResultSet resultSet) {
-        return new Currency(
-            resultSet.getObject("id", Long.class),
-                resultSet.getObject("fullName", String.class),
-                resultSet.getObject("code", String.class),
-                resultSet.getObject("sign", String.class)
-        );
+    public Currency save(Currency currency) {
+        var connection = ConnectionManager.get();
+        var prepareStatement = connection.prepareStatement(CREATE);
+        prepareStatement.setString(1, currency.getFullName());
+        prepareStatement.setString(2, currency.getCode());
+        prepareStatement.setString(3, currency.getSign());
+        var resultSet = prepareStatement.executeUpdate();
+        if (resultSet == 0) {
+            return null;
+        }
+        try (var generatedKeys = prepareStatement.getGeneratedKeys()) {
+            if (generatedKeys.next()) {
+                var generatedId = generatedKeys.getLong(1);
+                currency.setId(generatedId);
+            } else {
+                return null;
+            }
+        }
+        return currency;
     }
 }
