@@ -6,7 +6,7 @@ public interface DAO<T> {
 
     List<T> findAll();
 
-    void update(T t);
+    T update(T t);
 
     T save(T t);
 }
