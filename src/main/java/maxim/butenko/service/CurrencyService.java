@@ -11,12 +11,24 @@ import static java.util.stream.Collectors.toList;
 
 public class CurrencyService {
 
+    private static final CurrencyService INSTANCE = new CurrencyService();
     private final CurrencyDAOImpl currencyDAO = CurrencyDAOImpl.getInstance();
 
-    private static final CurrencyService INSTANCE = new CurrencyService();
+       private CurrencyService() {
 
-    private CurrencyService() {
+    }
 
+    public static CurrencyService getInstance() {
+        return INSTANCE;
+    }
+
+    private CurrencyDTO buildCurrency(Currency currency) {
+        return CurrencyDTO.builder()
+                .id(currency.getId())
+                .fullName(currency.getFullName())
+                .code(currency.getCode())
+                .sign(currency.getSign())
+                .build();
     }
 
     public List<CurrencyDTO> findAll() {
@@ -31,23 +43,14 @@ public class CurrencyService {
                 .findFirst();
     }
 
-    public static CurrencyService getInstance() {
-        return INSTANCE;
-    }
 
-    public Optional<CurrencyDTO> create( String fullName, String code, String sign) {
+
+    public Optional<CurrencyDTO> create(String fullName, String code, String sign) {
         var currency = new Currency(null, fullName, code, sign);
         currencyDAO.save(currency);
         return Optional.ofNullable(buildCurrency(currency));
     }
 
-    private CurrencyDTO buildCurrency(Currency currency) {
-        return CurrencyDTO.builder()
-                .id(currency.getId())
-                .fullName(currency.getFullName())
-                .code(currency.getCode())
-                .sign(currency.getSign())
-                .build();
-    }
+
 
 }
