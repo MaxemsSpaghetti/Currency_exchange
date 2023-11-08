@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,15 +22,18 @@ public class CurrenciesServlet extends HttpServlet {
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        List<CurrencyDTO> currencies = currencyService.findAll();
+        try {
+            resp.setContentType("application/json");
+            List<CurrencyDTO> currencies = currencyService.findAll();
+            String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currencies);
 
-        String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(currencies);
-
-        try (var printWriter = resp.getWriter()) {
+            PrintWriter printWriter = resp.getWriter();
             printWriter.write(json);
+        } catch (IOException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "the database is unavailable now, sorry(");
         }
     }
 
