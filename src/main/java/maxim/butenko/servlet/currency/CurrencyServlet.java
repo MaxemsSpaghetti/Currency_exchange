@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import maxim.butenko.dto.CurrencyDTO;
 import maxim.butenko.service.CurrencyService;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Optional;
 
 @WebServlet("/currency/*")
@@ -20,19 +20,19 @@ public class CurrencyServlet extends HttpServlet {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        try {
             resp.setContentType("application/json");
             String pathInfo = req.getPathInfo().substring(1);
 
-            if (pathInfo.length() != 3) {
+            if (pathInfo.length() != 3 || !pathInfo.matches("[A-Z]{3}")) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                        "Incorrect currency code entry. The currency must consist of 3 letters");
+                        "Incorrect currency code entry. The currency must consist of 3 letters in uppercase");
                 return;
             }
 
+        try {
             Optional<CurrencyDTO> optionalCurrency = currencyService.findByCode(pathInfo);
             if (optionalCurrency.isPresent()) {
                 CurrencyDTO currencyDTO = optionalCurrency.get();
@@ -42,10 +42,9 @@ public class CurrencyServlet extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Currency not found");
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "the database is unavailable now, sorry(");
+            objectMapper.writeValue(resp.getWriter(), "the database is unavailable now, sorry(");
         }
     }
 }
