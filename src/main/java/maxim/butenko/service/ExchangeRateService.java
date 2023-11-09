@@ -5,6 +5,7 @@ import maxim.butenko.dto.CurrencyDTO;
 import maxim.butenko.dto.ExchangeRateDTO;
 import maxim.butenko.model.ExchangeRate;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,19 +29,21 @@ public class ExchangeRateService {
         return INSTANCE;
     }
 
-    public List<ExchangeRateDTO> findAll() {
+    public List<ExchangeRateDTO> findAll() throws SQLException {
         return exchangeRateDAO.findAll().stream()
                 .map(this::buildExchangeRate)
                 .collect(toList());
     }
 
-    public Optional<ExchangeRateDTO> findByCodes(String baseCurrencyCode, String targetCurrencyCode) {
+    public Optional<ExchangeRateDTO> findByCodes(
+            String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
         return exchangeRateDAO.findByCodes(baseCurrencyCode, targetCurrencyCode).stream()
                 .map(this::buildExchangeRate)
                 .findFirst();
     }
 
-    public Optional<ExchangeRateDTO> create(String baseCurrencyCode, String targetCurrencyCode, Double rate) {
+    public Optional<ExchangeRateDTO> create(
+            String baseCurrencyCode, String targetCurrencyCode, Double rate) throws SQLException {
         var baseCurrencyDTO = currencyService.findByCode(baseCurrencyCode).orElseThrow();
         var targetCurrencyDTO = currencyService.findByCode(targetCurrencyCode).orElseThrow();
 
@@ -51,7 +54,8 @@ public class ExchangeRateService {
         return Optional.ofNullable(buildExchangeRate(save));
     }
 
-    public Optional<ExchangeRateDTO> update(String baseCurrencyCode, String targetCurrencyCode, Double rate) {
+    public Optional<ExchangeRateDTO> update(
+            String baseCurrencyCode, String targetCurrencyCode, Double rate) throws SQLException {
         Optional<ExchangeRate> rateBeforeUpdate = exchangeRateDAO.findByCodes(baseCurrencyCode, targetCurrencyCode);
         if (rateBeforeUpdate.isEmpty()) {
             return Optional.empty();
@@ -74,4 +78,6 @@ public class ExchangeRateService {
     }
 
 
+    public void convertCurrency(String baseCurrencyCode,String targetCurrencyCode,Double amount) {
+    }
 }
