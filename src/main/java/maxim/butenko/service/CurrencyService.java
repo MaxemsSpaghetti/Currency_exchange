@@ -4,6 +4,7 @@ import maxim.butenko.dao.CurrencyDAOImpl;
 import maxim.butenko.dto.CurrencyDTO;
 import maxim.butenko.model.Currency;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,13 +32,13 @@ public class CurrencyService {
                 .build();
     }
 
-    public List<CurrencyDTO> findAll() {
+    public List<CurrencyDTO> findAll() throws SQLException {
         return currencyDAO.findAll().stream()
                 .map(this::buildCurrency)
                 .collect(toList());
     }
 
-    public Optional<CurrencyDTO> findByCode(String code) {
+    public Optional<CurrencyDTO> findByCode(String code) throws SQLException {
         return currencyDAO.findByCode(code).stream()
                 .map(this::buildCurrency)
                 .findFirst();
@@ -45,7 +46,7 @@ public class CurrencyService {
 
 
 
-    public Optional<CurrencyDTO> create(String fullName, String code, String sign) {
+    public Optional<CurrencyDTO> create(String fullName, String code, String sign) throws SQLException {
         var currency = new Currency(null, fullName, code, sign);
         currencyDAO.save(currency);
         return Optional.ofNullable(buildCurrency(currency));
