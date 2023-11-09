@@ -1,6 +1,5 @@
 package maxim.butenko.dao;
 
-import lombok.SneakyThrows;
 import maxim.butenko.config.ConnectionManager;
 import maxim.butenko.model.Currency;
 import maxim.butenko.model.ExchangeRate;
@@ -44,8 +43,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
     }
 
     @Override
-    @SneakyThrows
-    public List<ExchangeRate> findAll() {
+    public List<ExchangeRate> findAll() throws SQLException {
         try (var connection = ConnectionManager.get()){
             var prepareStatement = connection.prepareStatement(SQLQuery.FIND_ALL.QUERY);
             var resultSet = prepareStatement.executeQuery();
@@ -59,8 +57,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
 
 
     @Override
-    @SneakyThrows
-    public Optional<ExchangeRate> findByCodes(String baseCurrencyCode, String targetCurrencyCode) {
+    public Optional<ExchangeRate> findByCodes(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
         try (var connection = ConnectionManager.get()){
             var prepareStatement = connection.prepareStatement(SQLQuery.FIND_BY_CODE.QUERY);
             prepareStatement.setString(1, baseCurrencyCode);
@@ -75,8 +72,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
     }
 
     @Override
-    @SneakyThrows
-    public ExchangeRate update(ExchangeRate exchangeRate) {
+    public ExchangeRate update(ExchangeRate exchangeRate) throws SQLException {
         try (var connection = ConnectionManager.get()){
             var prepareStatement = connection.prepareStatement(SQLQuery.UPDATE.QUERY);
             prepareStatement.setDouble(1, exchangeRate.getRate());
@@ -90,8 +86,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
         return exchangeRate;
     }
     @Override
-    @SneakyThrows
-    public ExchangeRate save(ExchangeRate exchangeRate) {
+    public ExchangeRate save(ExchangeRate exchangeRate) throws SQLException {
 
         try (var connection = ConnectionManager.get()) {
             connection.setAutoCommit(false);
