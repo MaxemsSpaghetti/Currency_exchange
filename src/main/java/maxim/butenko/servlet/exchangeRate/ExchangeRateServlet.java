@@ -1,6 +1,7 @@
 package maxim.butenko.servlet.exchangeRate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import maxim.butenko.dto.ExchangeRateDTO;
 import maxim.butenko.service.ExchangeRateService;
 
 import javax.servlet.ServletException;
@@ -9,7 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
+import java.util.Optional;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
@@ -28,37 +30,86 @@ public class ExchangeRateServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        var baseCurrencyCode = req.getPathInfo().substring(1, 4);
-        var targetCurrencyCode = req.getPathInfo().substring(4);
 
-        exchangeRateService.findByCodes(baseCurrencyCode, targetCurrencyCode).ifPresent(exchangeRate -> {
-            try {
-                var json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(exchangeRate);
+        String pathInfo = req.getPathInfo();
+
+        if (pathInfo.length() != 7 || !pathInfo.matches("[A-Z]{6}")) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect currency code entry. " +
+                    "Each currency must consist of 3 letters in uppercase");
+            return;
+        }
+
+       String baseCurrencyCode = pathInfo.substring(1, 4);
+       String targetCurrencyCode = pathInfo.substring(4);
+
+        try {
+            Optional<ExchangeRateDTO> exchangeRateByCodes = exchangeRateService.findByCodes(
+                    baseCurrencyCode, targetCurrencyCode);
+            if (exchangeRateByCodes.isPresent()) {
+                ExchangeRateDTO exchangeRate = exchangeRateByCodes.get();
+                String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(exchangeRate);
                 resp.getWriter().write(json);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND,
+                        "Exchange rate for the pair was not found");
             }
-        });
+        } catch (SQLException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "the database is unavailable now, sorry(");
+        }
     }
 
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        var baseCurrencyCode = req.getPathInfo().substring(1, 4);
-        var targetCurrencyCode = req.getPathInfo().substring(4);
-        var rate = Double.valueOf(req.getParameter("rate"));
+        String pathInfo = req.getPathInfo();
 
-        var updateExchangeRate = exchangeRateService.update(baseCurrencyCode, targetCurrencyCode, rate);
-        if (updateExchangeRate.isPresent()) {
-            var exchangeRate = updateExchangeRate.get();
-            var json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(exchangeRate);
-            try (var printWriter = resp.getWriter()) {
-                printWriter.write(json);
+        if (pathInfo.length() != 7 || !pathInfo.matches("[A-Z]{6}")) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect currency code entry. " +
+                    "Each currency must consist of 3 letters in uppercase");
+            return;
+        }
+
+        String baseCurrencyCode = pathInfo.substring(1, 4);
+        String targetCurrencyCode = pathInfo.substring(4);
+        Double rate;
+
+        try {
+            rate = Double.valueOf(req.getParameter("rate"));
+        } catch (NumberFormatException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "rate is required");
+            return;
+        }
+
+        if (rate < 0) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "rate must be positive");
+            return;
+        }
+
+        try {
+            Optional<ExchangeRateDTO> updateExchangeRate = exchangeRateService.update(
+                    baseCurrencyCode, targetCurrencyCode, rate);
+            if (updateExchangeRate.isPresent()) {
+                ExchangeRateDTO exchangeRate = updateExchangeRate.get();
+                String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(exchangeRate);
+                resp.getWriter().write(json);
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND,
+                        "Currency pair is missing in the database");
             }
+        } catch (SQLException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "the database is unavailable now, sorry(");
         }
     }
 }
