@@ -1,10 +1,10 @@
 package maxim.butenko.dao;
 
-import lombok.SneakyThrows;
 import maxim.butenko.config.ConnectionManager;
 import maxim.butenko.model.Currency;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,8 +21,8 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         return INSTANCE;
     }
 
-    @SneakyThrows
-    private Currency buildCurrency(ResultSet resultSet) {
+
+    private Currency buildCurrency(ResultSet resultSet) throws SQLException {
         return new Currency(
                 resultSet.getLong("id"),
                 resultSet.getString("fullName"),
@@ -32,8 +32,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    @SneakyThrows
-    public List<Currency> findAll() {
+    public List<Currency> findAll() throws SQLException {
         try (var connection = ConnectionManager.get()){
             var prepareStatement = connection.prepareStatement(SQLQuery.FIND_ALL.QUERY);
             var resultSet = prepareStatement.executeQuery();
@@ -46,8 +45,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    @SneakyThrows
-    public Optional<Currency> findByCode(String code) {
+    public Optional<Currency> findByCode(String code) throws SQLException {
         try (var connection = ConnectionManager.get()) {
             var prepareStatement = connection.prepareStatement(SQLQuery.FIND_BY_CODE.QUERY);
 
@@ -68,8 +66,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    @SneakyThrows
-    public Currency save(Currency currency) {
+    public Currency save(Currency currency) throws SQLException {
         try (var connection = ConnectionManager.get()){
             var prepareStatement = connection.prepareStatement(SQLQuery.CREATE.QUERY);
             prepareStatement.setString(1, currency.getFullName());
