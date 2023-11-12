@@ -3,6 +3,8 @@ package maxim.butenko.dao;
 import maxim.butenko.config.ConnectionManager;
 import maxim.butenko.model.Currency;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -33,9 +35,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
     @Override
     public List<Currency> findAll() throws SQLException {
-        try (var connection = ConnectionManager.get()){
-            var prepareStatement = connection.prepareStatement(SQLQuery.FIND_ALL.QUERY);
-            var resultSet = prepareStatement.executeQuery();
+        try (Connection connection = ConnectionManager.get()){
+            PreparedStatement prepareStatement = connection.prepareStatement(SQLQuery.FIND_ALL.QUERY);
+            ResultSet resultSet = prepareStatement.executeQuery();
             List<Currency> currencies = new ArrayList<>();
             while (resultSet.next()) {
                 currencies.add(buildCurrency(resultSet));
@@ -46,11 +48,11 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
     @Override
     public Optional<Currency> findByCode(String code) throws SQLException {
-        try (var connection = ConnectionManager.get()) {
-            var prepareStatement = connection.prepareStatement(SQLQuery.FIND_BY_CODE.QUERY);
+        try (Connection connection = ConnectionManager.get()) {
+            PreparedStatement prepareStatement = connection.prepareStatement(SQLQuery.FIND_BY_CODE.QUERY);
 
             prepareStatement.setString(1, code);
-            var result = prepareStatement.executeQuery();
+            ResultSet result = prepareStatement.executeQuery();
 
             if (!result.next()) {
                 return Optional.empty();
@@ -67,18 +69,18 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
     @Override
     public Currency save(Currency currency) throws SQLException {
-        try (var connection = ConnectionManager.get()){
-            var prepareStatement = connection.prepareStatement(SQLQuery.CREATE.QUERY);
+        try (Connection connection = ConnectionManager.get()){
+            PreparedStatement prepareStatement = connection.prepareStatement(SQLQuery.CREATE.QUERY);
             prepareStatement.setString(1, currency.getFullName());
             prepareStatement.setString(2, currency.getCode());
             prepareStatement.setString(3, currency.getSign());
-            var executeUpdate = prepareStatement.executeUpdate();
+            int executeUpdate = prepareStatement.executeUpdate();
             if (executeUpdate == 0) {
                 return null;
             }
-            try (var generatedKeys = prepareStatement.getGeneratedKeys()) {
+            try (ResultSet generatedKeys = prepareStatement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    var generatedId = generatedKeys.getLong(1);
+                    long generatedId = generatedKeys.getLong(1);
                     currency.setId(generatedId);
                 } else {
                     return null;
