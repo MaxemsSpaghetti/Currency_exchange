@@ -47,7 +47,7 @@ public class CurrencyService {
 
 
     public Optional<CurrencyDTO> create(String fullName, String code, String sign) throws SQLException {
-        var currency = new Currency(null, fullName, code, sign);
+        Currency currency = new Currency(null, fullName, code, sign);
         currencyDAO.save(currency);
         return Optional.ofNullable(buildCurrency(currency));
     }
