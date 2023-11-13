@@ -1,6 +1,7 @@
 package maxim.butenko.servlet.exchangeRate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import maxim.butenko.ErrorResponse;
 import maxim.butenko.dto.ExchangeRateDTO;
 import maxim.butenko.service.ExchangeRateService;
 
@@ -32,19 +33,28 @@ public class ExchangeRateServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-
+        resp.setCharacterEncoding("UTF-8");
         String pathInfo = req.getPathInfo();
 
-        if (pathInfo.length() != 7 || !pathInfo.matches("[A-Z]{6}")) {
+        if (pathInfo.length() != 7 || !pathInfo.matches("[A-Z/]{7}")) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect currency code entry. " +
-                    "Each currency must consist of 3 letters in uppercase");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "Incorrect currency code entry. " +
+                            "Each currency must consist of 3 letters in uppercase"));
             return;
         }
 
-       String baseCurrencyCode = pathInfo.substring(1, 4);
-       String targetCurrencyCode = pathInfo.substring(4);
+        String baseCurrencyCode = pathInfo.substring(1, 4);
+        String targetCurrencyCode = pathInfo.substring(4);
 
+        if (baseCurrencyCode.equals(targetCurrencyCode)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "baseCurrencyCode and targetCurrencyCode cannot be the same"));
+            return;
+        }
         try {
             Optional<ExchangeRateDTO> exchangeRateByCodes = exchangeRateService.findByCodes(
                     baseCurrencyCode, targetCurrencyCode);
@@ -54,43 +64,49 @@ public class ExchangeRateServlet extends HttpServlet {
                 resp.getWriter().write(json);
             } else {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND,
-                        "Exchange rate for the pair was not found");
+                objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                        HttpServletResponse.SC_NOT_FOUND,
+                        "Exchange rate for the pair was not found"));
             }
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "the database is unavailable now, sorry(");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "the database is unavailable now, sorry("));
         }
     }
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-
+        resp.setCharacterEncoding("UTF-8");
         String pathInfo = req.getPathInfo();
 
-        if (pathInfo.length() != 7 || !pathInfo.matches("[A-Z]{6}")) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect currency code entry. " +
-                    "Each currency must consist of 3 letters in uppercase");
-            return;
-        }
-
         String baseCurrencyCode = pathInfo.substring(1, 4);
-        String targetCurrencyCode = pathInfo.substring(4);
+        String targetCurrencyCode = pathInfo.substring(4, 7);
         Double rate;
 
         try {
             rate = Double.valueOf(req.getParameter("rate"));
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "rate is required");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "rate is required"));
             return;
         }
 
         if (rate < 0) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "rate must be positive");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "rate must be positive"));
+            return;
+
+        } else if (baseCurrencyCode.equals(targetCurrencyCode)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "baseCurrencyCode and targetCurrencyCode cannot be the same"));
             return;
         }
 
@@ -103,13 +119,15 @@ public class ExchangeRateServlet extends HttpServlet {
                 resp.getWriter().write(json);
             } else {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND,
-                        "Currency pair is missing in the database");
+                objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                        HttpServletResponse.SC_NOT_FOUND,
+                        "Currency pair is missing in the database"));
             }
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "the database is unavailable now, sorry(");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "the database is unavailable now, sorry("));
         }
     }
 }
