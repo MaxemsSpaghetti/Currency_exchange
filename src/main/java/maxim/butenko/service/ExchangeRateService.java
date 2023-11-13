@@ -4,7 +4,6 @@ import maxim.butenko.dao.ExchangeRateDAOImpl;
 import maxim.butenko.dto.CurrencyDTO;
 import maxim.butenko.dto.ExchangeRateDTO;
 import maxim.butenko.model.Currency;
-import maxim.butenko.model.CurrencyExchange;
 import maxim.butenko.model.ExchangeRate;
 
 import java.sql.SQLException;
@@ -82,60 +81,5 @@ public class ExchangeRateService {
                 .targetCurrencyId(targetCurrency)
                 .rate(exchangeRate.getRate())
                 .build();
-    }
-
-    public Optional<CurrencyExchange> convertCurrency(
-            String baseCurrencyCode, String targetCurrencyCode, Double amount) throws SQLException {
-
-        Optional<ExchangeRate> currencyPair = exchangeRateDAO.findByCodes(baseCurrencyCode, targetCurrencyCode);
-        if (currencyPair.isPresent()) {
-             return directCurrencyExchange(currencyPair, amount);
-        }
-
-        Optional<ExchangeRate> ReverseCurrencyPair = exchangeRateDAO.findByCodes(
-                targetCurrencyCode, baseCurrencyCode);
-        if (ReverseCurrencyPair.isPresent()) {
-            return reverseCurrencyExchange(ReverseCurrencyPair, amount);
-        }
-
-        List<ExchangeRate> byCodesSeparately = exchangeRateDAO.findByCodesSeparately(
-                baseCurrencyCode, targetCurrencyCode);
-        if (!byCodesSeparately.isEmpty()) {
-            return crossCurrencyExchange(byCodesSeparately, amount);
-        }
-
-        return Optional.empty();
-    }
-
-    private Optional<CurrencyExchange> directCurrencyExchange(Optional<ExchangeRate> currencyPair, Double amount) {
-        ExchangeRate exchangeRate = currencyPair.get();
-        Double rate = exchangeRate.getRate();
-        return Optional.of(new CurrencyExchange(exchangeRate.getBaseCurrency(),
-                exchangeRate.getTargetCurrency(),
-                rate,
-                amount,
-                rate * amount));
-    }
-
-    private Optional<CurrencyExchange> reverseCurrencyExchange(Optional<ExchangeRate> currencyPair, Double amount) {
-        ExchangeRate exchangeRate = currencyPair.get();
-        Double rate = exchangeRate.getRate();
-        return Optional.of(new CurrencyExchange(exchangeRate.getTargetCurrency(),
-                exchangeRate.getBaseCurrency(),
-                1 / rate,
-                amount,
-                1 / rate * amount));
-    }
-
-    private Optional<CurrencyExchange> crossCurrencyExchange(List<ExchangeRate> currencyPairs, Double amount) {
-        ExchangeRate exchangeRate = currencyPairs.get(0);
-        Double firstRate = exchangeRate.getRate();
-        ExchangeRate secondExchangeRate = currencyPairs.get(1);
-        Double secondRate = secondExchangeRate.getRate();
-
-        return Optional.of(new CurrencyExchange(exchangeRate.getTargetCurrency(),
-                secondExchangeRate.getTargetCurrency(),
-                firstRate / secondRate, amount,
-                firstRate / secondRate * amount));
     }
 }
