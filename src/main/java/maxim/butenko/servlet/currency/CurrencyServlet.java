@@ -1,6 +1,7 @@
 package maxim.butenko.servlet.currency;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import maxim.butenko.ErrorResponse;
 import maxim.butenko.dto.CurrencyDTO;
 import maxim.butenko.service.CurrencyService;
 
@@ -19,18 +20,21 @@ public class CurrencyServlet extends HttpServlet {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-            resp.setContentType("application/json");
-            String pathInfo = req.getPathInfo().substring(1);
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        String pathInfo = req.getPathInfo().substring(1);
 
-            if (pathInfo.length() != 3 || !pathInfo.matches("[A-Z]{3}")) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                        "Incorrect currency code entry. The currency must consist of 3 letters in uppercase");
-                return;
-            }
+        if (pathInfo.length() != 3 || !pathInfo.matches("[A-Z]{3}")) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "Incorrect currency code entry. The currency must consist of 3 letters in uppercase"));
+            return;
+        }
 
         try {
             Optional<CurrencyDTO> optionalCurrency = currencyService.findByCode(pathInfo);
@@ -40,11 +44,15 @@ public class CurrencyServlet extends HttpServlet {
                 resp.getWriter().write(json);
             } else {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Currency not found");
+                objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                        HttpServletResponse.SC_NOT_FOUND,
+                        "Currency not found"));
             }
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(resp.getWriter(), "the database is unavailable now, sorry(");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "the database is unavailable now, sorry("));
         }
     }
 }
