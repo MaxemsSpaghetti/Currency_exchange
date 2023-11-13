@@ -68,7 +68,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
             return Optional.of(buildExchangeRate(result));
         }
     }
-
+    @Override
     public List<ExchangeRate> findByCodesSeparately(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
         try (Connection connection = ConnectionManager.get()) {
             PreparedStatement prepareStatement = connection.prepareStatement(SQLQuery.FIND_BY_CODES_SEPARATELY.QUERY);
@@ -155,7 +155,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
                     JOIN currencies targetCurrency ON exchangeRate.targetCurrencyId = targetCurrency.id
                 WHERE (
                     baseCurrencyId = (SELECT currency.id FROM currencies currency WHERE currency.code = ?) AND
-                    targetCurrencyId = (SELECT currency.id FROM currencies currency WHERE currency.code = ?)  
+                    targetCurrencyId = (SELECT currency.id FROM currencies currency WHERE currency.code = ?) 
                 )    
             """),
 
