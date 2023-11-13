@@ -1,6 +1,7 @@
 package maxim.butenko.servlet.exchangeRate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import maxim.butenko.ErrorResponse;
 import maxim.butenko.dto.ExchangeRateDTO;
 import maxim.butenko.service.ExchangeRateService;
 import org.sqlite.SQLiteErrorCode;
@@ -27,6 +28,7 @@ public class ExchangeRatesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
 
         try {
             List<ExchangeRateDTO> exchangeRateDTOS = exchangeRateService.findAll();
@@ -35,14 +37,16 @@ public class ExchangeRatesServlet extends HttpServlet {
             printWriter.write(json);
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "the database is unavailable now, sorry(");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "the database is unavailable now, sorry("));
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
 
         String baseCurrencyCode = req.getParameter("baseCurrencyCode");
         String targetCurrencyCode = req.getParameter("targetCurrencyCode");
@@ -51,41 +55,55 @@ public class ExchangeRatesServlet extends HttpServlet {
             rate = Double.valueOf(req.getParameter("rate"));
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "rate is required");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "rate is required"));
             return;
         }
 
         if (baseCurrencyCode.isBlank()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "baseCurrencyCode is required");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "baseCurrencyCode is required"));
             return;
+
         } else if (targetCurrencyCode.isBlank()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "targetCurrencyCode is required");
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "targetCurrencyCode is required"));
+            return;
+
+        } else if (baseCurrencyCode.equals(targetCurrencyCode)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    "baseCurrencyCode and targetCurrencyCode cannot be the same"));
             return;
         }
+
         try {
             Optional<ExchangeRateDTO> newExchangeRate = exchangeRateService.create(
                     baseCurrencyCode, targetCurrencyCode, rate);
             if (newExchangeRate.isPresent()) {
                 ExchangeRateDTO exchangeRateDTO = newExchangeRate.get();
                 String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(exchangeRateDTO);
-                PrintWriter printWriter = resp.getWriter();
-                printWriter.write(json);
+                resp.getWriter().write(json);
             }
         } catch (SQLException e) {
-             if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT.code) {
+            if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT.code) {
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                resp.sendError(HttpServletResponse.SC_CONFLICT,
-                        "Currency pair with this code already exists");
+                objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                        HttpServletResponse.SC_CONFLICT,
+                        "Currency pair with this code already exists"));
+
             } else {
-                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                         "the database is unavailable now, sorry(");
-             }
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
+                        HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "the database is unavailable now, sorry("));
+            }
         }
     }
 }
