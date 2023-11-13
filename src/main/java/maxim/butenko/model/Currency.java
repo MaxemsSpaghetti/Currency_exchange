@@ -1,6 +1,5 @@
 package maxim.butenko.model;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +13,5 @@ public class Currency {
     private Long id;
     private String fullName;
     private String code;
-    @JsonRawValue
     private String sign;
 }
