@@ -6,6 +6,7 @@ import maxim.butenko.dto.ExchangeRateDTO;
 import maxim.butenko.model.Currency;
 import maxim.butenko.model.ExchangeRate;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -44,20 +45,20 @@ public class ExchangeRateService {
     }
 
     public Optional<ExchangeRateDTO> create(
-            String baseCurrencyCode, String targetCurrencyCode, Double rate) throws SQLException {
+            String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException {
         CurrencyDTO baseCurrencyDTO = currencyService.findByCode(baseCurrencyCode).orElseThrow();
         CurrencyDTO targetCurrencyDTO = currencyService.findByCode(targetCurrencyCode).orElseThrow();
 
-        Currency baseCurrency = currencyMapper.convertCurrencyDTOToCurrency(baseCurrencyDTO);
-        Currency targetCurrency = currencyMapper.convertCurrencyDTOToCurrency(targetCurrencyDTO);
+        Currency baseCurrency = currencyMapper.map(baseCurrencyDTO, Currency.class);
+        Currency targetCurrency = currencyMapper.map(targetCurrencyDTO, Currency.class);
 
-        ExchangeRate save = exchangeRateDAO.save(new ExchangeRate(null, baseCurrency, targetCurrency, rate));
+        ExchangeRate save = exchangeRateDAO.save(new ExchangeRate(baseCurrency, targetCurrency, rate));
 
         return Optional.ofNullable(buildExchangeRate(save));
     }
 
     public Optional<ExchangeRateDTO> update(
-            String baseCurrencyCode, String targetCurrencyCode, Double rate) throws SQLException {
+            String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException {
         Optional<ExchangeRate> rateBeforeUpdate = exchangeRateDAO.findByCodes(baseCurrencyCode, targetCurrencyCode);
 
         if (rateBeforeUpdate.isEmpty()) {
