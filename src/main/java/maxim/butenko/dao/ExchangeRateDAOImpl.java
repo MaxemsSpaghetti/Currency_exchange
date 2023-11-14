@@ -4,6 +4,7 @@ import maxim.butenko.config.ConnectionManager;
 import maxim.butenko.model.Currency;
 import maxim.butenko.model.ExchangeRate;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
                         resultSet.getObject("target_code", String.class),
                         resultSet.getObject("target_sign", String.class)
                 ),
-                resultSet.getDouble("rate")
+                resultSet.getObject("rate", BigDecimal.class)
         );
     }
 
@@ -87,7 +88,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
     public ExchangeRate update(ExchangeRate exchangeRate) throws SQLException {
         try (Connection connection = ConnectionManager.get()){
             PreparedStatement prepareStatement = connection.prepareStatement(SQLQuery.UPDATE.QUERY);
-            prepareStatement.setDouble(1, exchangeRate.getRate());
+            prepareStatement.setObject(1, exchangeRate.getRate());
             prepareStatement.setObject(2, exchangeRate.getBaseCurrency().getId());
             prepareStatement.setObject(3, exchangeRate.getTargetCurrency().getId());
             var executeUpdate = prepareStatement.executeUpdate();
@@ -104,7 +105,7 @@ public class ExchangeRateDAOImpl implements ExchangeRateDAO {
             PreparedStatement prepareStatement = connection.prepareStatement(SQLQuery.CREATE.QUERY, Statement.RETURN_GENERATED_KEYS);
             prepareStatement.setObject(1, exchangeRate.getBaseCurrency().getId());
             prepareStatement.setObject(2, exchangeRate.getTargetCurrency().getId());
-            prepareStatement.setDouble(3, exchangeRate.getRate());
+            prepareStatement.setObject(3, exchangeRate.getRate());
 
             prepareStatement.execute();
 
