@@ -1,4 +1,4 @@
-package maxim.butenko;
+package maxim.butenko.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
