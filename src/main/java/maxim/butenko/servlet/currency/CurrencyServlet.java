@@ -1,7 +1,7 @@
 package maxim.butenko.servlet.currency;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import maxim.butenko.ErrorResponse;
+import maxim.butenko.utils.ErrorResponse;
 import maxim.butenko.dto.CurrencyDTO;
 import maxim.butenko.service.CurrencyService;
 
@@ -24,8 +24,6 @@ public class CurrencyServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
         String pathInfo = req.getPathInfo().substring(1);
 
         if (pathInfo.length() != 3 || !pathInfo.matches("[A-Z]{3}")) {

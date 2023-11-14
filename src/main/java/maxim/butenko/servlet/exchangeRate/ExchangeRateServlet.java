@@ -1,7 +1,7 @@
 package maxim.butenko.servlet.exchangeRate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import maxim.butenko.ErrorResponse;
+import maxim.butenko.utils.ErrorResponse;
 import maxim.butenko.dto.ExchangeRateDTO;
 import maxim.butenko.service.ExchangeRateService;
 
@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Optional;
 
@@ -32,8 +33,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+
         String pathInfo = req.getPathInfo();
 
         if (pathInfo.length() != 7 || !pathInfo.matches("[A-Z/]{7}")) {
@@ -77,16 +77,15 @@ public class ExchangeRateServlet extends HttpServlet {
     }
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
+
         String pathInfo = req.getPathInfo();
 
         String baseCurrencyCode = pathInfo.substring(1, 4);
         String targetCurrencyCode = pathInfo.substring(4, 7);
-        Double rate;
+        BigDecimal rate;
 
         try {
-            rate = Double.valueOf(req.getParameter("rate"));
+            rate = BigDecimal.valueOf(Double.parseDouble(req.getParameter("rate")));
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
@@ -95,7 +94,7 @@ public class ExchangeRateServlet extends HttpServlet {
             return;
         }
 
-        if (rate < 0) {
+        if (rate.compareTo(BigDecimal.ZERO) <= 0) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
                     HttpServletResponse.SC_BAD_REQUEST,

@@ -1,7 +1,7 @@
 package maxim.butenko.servlet.currency;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import maxim.butenko.ErrorResponse;
+import maxim.butenko.utils.ErrorResponse;
 import maxim.butenko.dto.CurrencyDTO;
 import maxim.butenko.service.CurrencyService;
 import org.sqlite.SQLiteErrorCode;
@@ -26,8 +26,6 @@ public class CurrenciesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         try {
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
 
             List<CurrencyDTO> currencies = currencyService.findAll();
 
@@ -44,9 +42,6 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
-        resp.setContentType("application/json");
-        req.setCharacterEncoding("UTF-8");
 
         String fullName = req.getParameter("fullName");
         String code = req.getParameter("code");

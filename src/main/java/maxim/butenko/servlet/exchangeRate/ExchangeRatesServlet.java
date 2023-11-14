@@ -1,7 +1,7 @@
 package maxim.butenko.servlet.exchangeRate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import maxim.butenko.ErrorResponse;
+import maxim.butenko.utils.ErrorResponse;
 import maxim.butenko.dto.ExchangeRateDTO;
 import maxim.butenko.service.ExchangeRateService;
 import org.sqlite.SQLiteErrorCode;
@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -26,9 +27,6 @@ public class ExchangeRatesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
 
         try {
             List<ExchangeRateDTO> exchangeRateDTOS = exchangeRateService.findAll();
@@ -45,14 +43,12 @@ public class ExchangeRatesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
 
         String baseCurrencyCode = req.getParameter("baseCurrencyCode");
         String targetCurrencyCode = req.getParameter("targetCurrencyCode");
-        Double rate;
+        BigDecimal rate;
         try {
-            rate = Double.valueOf(req.getParameter("rate"));
+            rate = BigDecimal.valueOf(Double.parseDouble(req.getParameter("rate")));
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
