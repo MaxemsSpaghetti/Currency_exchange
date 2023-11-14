@@ -1,7 +1,7 @@
 package maxim.butenko.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import maxim.butenko.ErrorResponse;
+import maxim.butenko.utils.ErrorResponse;
 import maxim.butenko.model.CurrencyExchange;
 import maxim.butenko.service.CurrencyExchangeService;
 
@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Optional;
 
@@ -22,15 +23,13 @@ public class CurrencyExchangeServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
 
         String baseCurrencyCode = req.getParameter("from");
         String targetCurrencyCode = req.getParameter("to");
-        Double amount;
+        BigDecimal amount;
 
         try {
-            amount = Double.valueOf(req.getParameter("amount"));
+            amount = BigDecimal.valueOf(Double.parseDouble(req.getParameter("amount")));
         } catch (NumberFormatException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(resp.getWriter(), new ErrorResponse(
