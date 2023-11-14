@@ -78,16 +78,16 @@ Getting a list of all exchange rates. Response example:
     {
     "id": 0,
     "baseCurrency": {
-    "id": 0,
-    "name": "United States dollar",
-    "code": "USD",
-    "sign": "$"
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
     },
     "targetCurrency": {
-    "id": 1,
-    "name": "Euro",
-    "code": "EUR",
-    "sign": "€"
+        "id": 1,
+        "name": "Euro",
+        "code": "EUR",
+        "sign": "€"
     },
     "rate": 0.99
     }
@@ -102,16 +102,16 @@ The currency pair is set by consecutive currency codes in the request address. R
     {
     "id": 0,
     "baseCurrency": {
-    "id": 0,
-    "name": "United States dollar",
-    "code": "USD",
-    "sign": "$"
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
     },
     "targetCurrency": {
-    "id": 1,
-    "name": "Euro",
-    "code": "EUR",
-    "sign": "€"
+        "id": 1,
+        "name": "Euro",
+        "code": "EUR",
+        "sign": "€"
     },
     "rate": 0.99
     }
@@ -127,16 +127,16 @@ The form fields are base Currency Code, targetCurrencyCode, rate. Example of for
     {
     "id": 0,
     "baseCurrency": {
-    "id": 0,
-    "name": "United States dollar",
-    "code": "USD",
-    "sign": "$"
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
     },
     "targetCurrency": {
-    "id": 1,
-    "name": "Euro",
-    "code": "EUR",
-    "sign": "€"
+        "id": 1,
+        "name": "Euro",
+        "code": "EUR",
+        "sign": "€"
     },
     "rate": 0.99
     }
@@ -155,16 +155,16 @@ An example of a response is a JSON representation of an updated record in the da
     {
     "id": 0,
     "baseCurrency": {
-    "id": 0,
-    "name": "United States dollar",
-    "code": "USD",
-    "sign": "$"
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
     },
     "targetCurrency": {
-    "id": 1,
-    "name": "Euro",
-    "code": "EUR",
-    "sign": "€"
+        "id": 1,
+        "name": "Euro",
+        "code": "EUR",
+        "sign": "€"
     },
     "rate": 0.99
     }
@@ -182,16 +182,16 @@ Response example:
 [    
     {
     "baseCurrency": {
-    "id": 0,
-    "name": "United States dollar",
-    "code": "USD",
-    "sign": "$"
+        "id": 0,
+        "name": "United States dollar",
+        "code": "USD",
+        "sign": "$"
     },
     "targetCurrency": {
-    "id": 1,
-    "name": "Australian dollar",
-    "code": "AUD",
-    "sign": "A€"
+        "id": 1,
+        "name": "Australian dollar",
+        "code": "AUD",
+        "sign": "A€"
     },
     "rate": 1.45,
     "amount": 10.00
