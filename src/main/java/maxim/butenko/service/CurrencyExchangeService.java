@@ -5,32 +5,16 @@ import maxim.butenko.dao.ExchangeRateDAOImpl;
 import maxim.butenko.model.CurrencyExchange;
 import maxim.butenko.model.ExchangeRate;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 public class CurrencyExchangeService {
 
     private static final CurrencyExchangeService INSTANCE = new CurrencyExchangeService();
     private final ExchangeRateDAO exchangeRateDAO = ExchangeRateDAOImpl.getInstance();
-
-    private static final DecimalFormat decimalFormatForAmount;
-
-    private static final DecimalFormat decimalFormatForRate;
-
-    static {
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
-
-        symbols.setDecimalSeparator('.');
-
-        decimalFormatForAmount = new DecimalFormat("#.##", symbols);
-
-        decimalFormatForRate = new DecimalFormat("#.######", symbols);
-
-    }
 
     private CurrencyExchangeService() {
 
@@ -41,17 +25,17 @@ public class CurrencyExchangeService {
     }
 
     public Optional<CurrencyExchange> convertCurrency(
-            String baseCurrencyCode, String targetCurrencyCode, Double amount) throws SQLException {
+            String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) throws SQLException {
 
         Optional<ExchangeRate> currencyPair = exchangeRateDAO.findByCodes(baseCurrencyCode, targetCurrencyCode);
         if (currencyPair.isPresent()) {
-            return directCurrencyExchange(currencyPair, amount);
+            return directCurrencyExchange(currencyPair.get(), amount);
         }
 
         Optional<ExchangeRate> ReverseCurrencyPair = exchangeRateDAO.findByCodes(
                 targetCurrencyCode, baseCurrencyCode);
         if (ReverseCurrencyPair.isPresent()) {
-            return reverseCurrencyExchange(ReverseCurrencyPair, amount);
+            return reverseCurrencyExchange(ReverseCurrencyPair.get(), amount);
         }
 
         List<ExchangeRate> byCodesSeparately = exchangeRateDAO.findByCodesSeparately(
@@ -63,36 +47,46 @@ public class CurrencyExchangeService {
         return Optional.empty();
     }
 
-    private Optional<CurrencyExchange> directCurrencyExchange(Optional<ExchangeRate> currencyPair, Double amount) {
-        ExchangeRate exchangeRate = currencyPair.get();
-        Double rate = exchangeRate.getRate();
+    private Optional<CurrencyExchange> directCurrencyExchange(ExchangeRate exchangeRate, BigDecimal amount) {
+        BigDecimal rate = exchangeRate.getRate();
+
+        BigDecimal convertedAmount = rate.multiply(amount).setScale(2, RoundingMode.HALF_UP);
+
         return Optional.of(new CurrencyExchange(exchangeRate.getBaseCurrency(),
                 exchangeRate.getTargetCurrency(),
                 rate,
                 amount,
-                Double.parseDouble(decimalFormatForAmount.format(rate * amount))));
+                convertedAmount));
     }
 
-    private Optional<CurrencyExchange> reverseCurrencyExchange(Optional<ExchangeRate> currencyPair, Double amount) {
-        ExchangeRate exchangeRate = currencyPair.get();
-        Double rate = exchangeRate.getRate();
+    private Optional<CurrencyExchange> reverseCurrencyExchange(ExchangeRate exchangeRate, BigDecimal amount) {
+        BigDecimal rate = exchangeRate.getRate();
+
+        BigDecimal finalRate = BigDecimal.ONE.divide(rate).setScale(6, RoundingMode.HALF_UP);
+        BigDecimal convertedAmount = BigDecimal.ONE.divide(rate.multiply(amount))
+                .setScale(2, RoundingMode.HALF_UP);
+
         return Optional.of(new CurrencyExchange(exchangeRate.getTargetCurrency(),
                 exchangeRate.getBaseCurrency(),
-                Double.parseDouble(decimalFormatForRate.format(1 / rate)),
+                finalRate,
                 amount,
-                Double.parseDouble(decimalFormatForAmount.format(1 / rate * amount))));
+                convertedAmount));
     }
 
-    private Optional<CurrencyExchange> crossCurrencyExchange(List<ExchangeRate> currencyPairs, Double amount) {
+    private Optional<CurrencyExchange> crossCurrencyExchange(List<ExchangeRate> currencyPairs, BigDecimal amount) {
         ExchangeRate exchangeRate = currencyPairs.get(0);
-        Double firstRate = exchangeRate.getRate();
+        BigDecimal firstRate = exchangeRate.getRate();
         ExchangeRate secondExchangeRate = currencyPairs.get(1);
-        Double secondRate = secondExchangeRate.getRate();
+        BigDecimal secondRate = secondExchangeRate.getRate();
+
+        BigDecimal finalRate = firstRate.divide(secondRate.setScale(6, RoundingMode.HALF_UP));
+        BigDecimal convertedAmount = finalRate.divide(secondRate.multiply(amount)
+                .setScale(2, RoundingMode.HALF_UP));
 
         return Optional.of(new CurrencyExchange(exchangeRate.getTargetCurrency(),
                 secondExchangeRate.getTargetCurrency(),
-                Double.parseDouble(decimalFormatForRate.format(firstRate / secondRate)),
+                finalRate,
                 amount,
-                Double.parseDouble(decimalFormatForAmount.format(firstRate / secondRate * amount))));
+                convertedAmount));
     }
 }
