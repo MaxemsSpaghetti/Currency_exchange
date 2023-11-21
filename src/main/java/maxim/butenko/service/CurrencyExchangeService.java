@@ -79,9 +79,8 @@ public class CurrencyExchangeService {
         ExchangeRate secondExchangeRate = currencyPairs.get(1);
         BigDecimal secondRate = secondExchangeRate.getRate();
 
-        BigDecimal finalRate = firstRate.divide(secondRate.setScale(6, RoundingMode.HALF_UP));
-        BigDecimal convertedAmount = finalRate.divide(secondRate.multiply(amount)
-                .setScale(2, RoundingMode.HALF_UP));
+        BigDecimal finalRate = firstRate.divide(secondRate, 6, RoundingMode.HALF_UP);
+        BigDecimal convertedAmount = finalRate.multiply(amount).setScale(2, RoundingMode.HALF_UP);
 
         return Optional.of(new CurrencyExchange(exchangeRate.getTargetCurrency(),
                 secondExchangeRate.getTargetCurrency(),
